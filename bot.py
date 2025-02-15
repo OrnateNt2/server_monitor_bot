@@ -23,6 +23,18 @@ def check_auth(update: Update) -> bool:
         return False
     return True
 
+def get_memory_info():
+    """Получает корректную информацию о памяти в контейнере"""
+    try:
+        result = subprocess.run(["free", "-b"], capture_output=True, text=True).stdout
+        lines = result.split("\n")
+        mem_line = lines[1].split()
+        total_memory = int(mem_line[1])
+        used_memory = int(mem_line[2])
+        return total_memory, used_memory
+    except Exception as e:
+        return 0, 0
+
 def get_additional_info() -> str:
     """Получаем дополнительную информацию с помощью shell-скрипта."""
     try:
@@ -34,18 +46,16 @@ def get_additional_info() -> str:
 def get_server_status() -> str:
     """Получаем информацию о сервере."""
     cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    
-    # Фикс для случая, когда total = 0 (Docker-контейнер)
-    total_memory = memory.total if memory.total > 0 else os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-    used_memory = memory.used if memory.total > 0 else total_memory - memory.available
-    
+
+    total_memory, used_memory = get_memory_info()
+
     additional_info = get_additional_info()
-    
+
     status = (f"💻 *Состояние сервера:*\n"
               f"🖥 *CPU:* {cpu_usage}%\n"
-              f"🗄 *RAM:* {memory.percent}% (использовано {used_memory // (1024**3)} ГБ из {total_memory // (1024**3)} ГБ)\n"
+              f"🗄 *RAM:* {(used_memory / total_memory * 100) if total_memory else 0:.1f}% "
+              f"(использовано {used_memory // (1024**3)} ГБ из {total_memory // (1024**3)} ГБ)\n"
               f"💾 *Диск:* {disk.percent}% (использовано {disk.used // (1024**3)} ГБ из {disk.total // (1024**3)} ГБ)\n"
               f"🔍 *Доп. информация:*\n{additional_info}")
     return status
