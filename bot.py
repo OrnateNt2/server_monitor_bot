@@ -1,6 +1,7 @@
 import os
 import psutil
 import logging
+import subprocess
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 from dotenv import load_dotenv
@@ -22,6 +23,14 @@ def check_auth(update: Update) -> bool:
         return False
     return True
 
+def get_additional_info() -> str:
+    """Получаем дополнительную информацию с помощью shell-скрипта."""
+    try:
+        result = subprocess.run(["sh", "server_info.sh"], capture_output=True, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        return f"Ошибка при получении данных: {str(e)}"
+
 def get_server_status() -> str:
     """Получаем информацию о сервере."""
     cpu_usage = psutil.cpu_percent(interval=1)
@@ -32,10 +41,13 @@ def get_server_status() -> str:
     total_memory = memory.total if memory.total > 0 else os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
     used_memory = memory.used if memory.total > 0 else total_memory - memory.available
     
+    additional_info = get_additional_info()
+    
     status = (f"💻 *Состояние сервера:*\n"
               f"🖥 *CPU:* {cpu_usage}%\n"
               f"🗄 *RAM:* {memory.percent}% (использовано {used_memory // (1024**3)} ГБ из {total_memory // (1024**3)} ГБ)\n"
-              f"💾 *Диск:* {disk.percent}% (использовано {disk.used // (1024**3)} ГБ из {disk.total // (1024**3)} ГБ)")
+              f"💾 *Диск:* {disk.percent}% (использовано {disk.used // (1024**3)} ГБ из {disk.total // (1024**3)} ГБ)\n"
+              f"🔍 *Доп. информация:*\n{additional_info}")
     return status
 
 async def start(update: Update, context: CallbackContext) -> None:
