@@ -1,11 +1,11 @@
 #!/bin/sh
+
 echo "📡 *Сеть:*"
-echo "↔️ Интерфейсы:"
-ip -brief address | grep -v "lo"
+ip -4 a | grep -E 'inet ' | awk '{print "🌍 " $2}'
 
 echo ""
-echo "📊 *Процессы:*"
-ps -eo pid,comm,%cpu,%mem --sort=-%mem | head -n 6
+echo "📊 *Топ 5 процессов по памяти:*"
+ps aux --sort=-%mem | head -n 6 | awk '{print $2, $11, $4"%"}'
 
 echo ""
 echo "📦 *Использование swap:*"
