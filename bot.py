@@ -27,10 +27,14 @@ def get_server_status() -> str:
     cpu_usage = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-
+    
+    # Фикс для случая, когда total = 0 (Docker-контейнер)
+    total_memory = memory.total if memory.total > 0 else os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+    used_memory = memory.used if memory.total > 0 else total_memory - memory.available
+    
     status = (f"💻 *Состояние сервера:*\n"
               f"🖥 *CPU:* {cpu_usage}%\n"
-              f"🗄 *RAM:* {memory.percent}% (использовано {memory.used // (1024**3)} ГБ из {memory.total // (1024**3)} ГБ)\n"
+              f"🗄 *RAM:* {memory.percent}% (использовано {used_memory // (1024**3)} ГБ из {total_memory // (1024**3)} ГБ)\n"
               f"💾 *Диск:* {disk.percent}% (использовано {disk.used // (1024**3)} ГБ из {disk.total // (1024**3)} ГБ)")
     return status
 
