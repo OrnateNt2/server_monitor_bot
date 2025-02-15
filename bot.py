@@ -28,12 +28,9 @@ def get_server_status() -> str:
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
 
-    status = (f"💻 *Состояние сервера:*
-"
-              f"🖥 *CPU:* {cpu_usage}%
-"
-              f"🗄 *RAM:* {memory.percent}% (использовано {memory.used // (1024**3)} ГБ из {memory.total // (1024**3)} ГБ)
-"
+    status = (f"💻 *Состояние сервера:*\n"
+              f"🖥 *CPU:* {cpu_usage}%\n"
+              f"🗄 *RAM:* {memory.percent}% (использовано {memory.used // (1024**3)} ГБ из {memory.total // (1024**3)} ГБ)\n"
               f"💾 *Диск:* {disk.percent}% (использовано {disk.used // (1024**3)} ГБ из {disk.total // (1024**3)} ГБ)")
     return status
 
