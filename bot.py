@@ -33,13 +33,19 @@ async def main():
     app.add_handler(CommandHandler("status", status))
 
     logger.info("Бот запущен!")
+    await app.initialize()  # Инициализация бота перед запуском
+    await app.start()
     await app.run_polling()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    
+
     try:
-        loop.create_task(main())  # Запускаем main() как фоновую задачу
-        loop.run_forever()  # Держим процесс активным
-    except KeyboardInterrupt:
-        logger.info("Бот остановлен")
+        loop.run_until_complete(main())  # Запускаем бота в существующем event loop
+    except RuntimeError as e:
+        if "This event loop is already running" in str(e):
+            logger.warning("Event loop уже запущен. Запускаем main() через asyncio.create_task().")
+            asyncio.create_task(main())  # Запускаем main() как задачу
+            loop.run_forever()  # Держим процесс активным
+        else:
+            raise
