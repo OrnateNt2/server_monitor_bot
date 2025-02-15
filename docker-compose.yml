@@ -1,8 +1,9 @@
-version: '3'
+version: '3.8'
+
 services:
   telegram_bot:
     build: .
-    container_name: server_monitor_bot
+    container_name: telegram_bot
+    restart: always
     env_file:
       - .env
-    restart: always

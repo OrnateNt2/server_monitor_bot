@@ -1,19 +1,8 @@
-# Python
+.env
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-
-# Virtual environments
-venv/
-.env
-
-# Logs
 *.log
-
-# Byte-compiled files
-*.swp
-*.swo
-
-# Docker
-docker-compose.override.yml
+*.db
+.DS_Store
+venv/
