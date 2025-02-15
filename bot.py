@@ -37,13 +37,9 @@ async def main():
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-
+    
     try:
-        loop.run_until_complete(main())  # Используем существующий event loop
-    except RuntimeError as e:
-        if "This event loop is already running" in str(e):
-            logger.warning("Event loop уже запущен. Запускаем main() через ensure_future.")
-            asyncio.ensure_future(main())  # Запускаем бота в существующем loop
-            loop.run_forever()  # Держим процесс активным
-        else:
-            raise
+        loop.create_task(main())  # Запускаем main() как фоновую задачу
+        loop.run_forever()  # Держим процесс активным
+    except KeyboardInterrupt:
+        logger.info("Бот остановлен")
