@@ -1,13 +1,14 @@
 import logging
 import psutil
-import telegram
-from telegram.ext import Updater, CommandHandler
+import asyncio
+from telegram import Update
+from telegram.ext import Application, CommandHandler
 from config import TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def get_server_load():
+async def get_server_load():
     """Собирает информацию о загрузке сервера."""
     cpu_usage = psutil.cpu_percent(interval=1)
     mem = psutil.virtual_memory()
@@ -18,22 +19,21 @@ def get_server_load():
             f"🔹 RAM: {mem.percent}% ({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)\n"
             f"🔹 Диск: {disk.percent}% ({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)")
 
-def start(update, context):
-    update.message.reply_text("Привет! Отправь /status, чтобы узнать загрузку сервера.")
+async def start(update: Update, context):
+    await update.message.reply_text("Привет! Отправь /status, чтобы узнать загрузку сервера.")
 
-def status(update, context):
-    load_info = get_server_load()
-    update.message.reply_text(load_info, parse_mode=telegram.ParseMode.MARKDOWN)
+async def status(update: Update, context):
+    load_info = await get_server_load()
+    await update.message.reply_text(load_info, parse_mode="Markdown")
 
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+async def main():
+    app = Application.builder().token(TOKEN).build()
 
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("status", status))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("status", status))
 
-    updater.start_polling()
-    updater.idle()
+    logger.info("Бот запущен!")
+    await app.run_polling()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
